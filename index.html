@@ -303,43 +303,43 @@ footer b{color:var(--dim)}
 <script>
 (function(){
   var fmt=function(n){return n.toLocaleString('ko-KR')};
+  var counters=[].slice.call(document.querySelectorAll('[data-count]'));
+  var bars=document.getElementById('bars');
+  // 숫자는 HTML 에 최종값이 박혀 있다. JS 가 꺼져 있거나 크롤러·메일 미리보기로 열려도
+  // 「구독자 0명」이 보이면 안 되기 때문. 0 으로 되돌리는 건 애니메이션을 실제로 시작하는 순간뿐이다.
+  var finalText=function(el){
+    var to=+el.dataset.count, div=+(el.dataset.div||1);
+    return div>1 ? (to/div).toFixed(2) : fmt(to);
+  };
+  var settle=function(){
+    counters.forEach(function(el){el.textContent=finalText(el)});
+    if(bars)bars.classList.add('on');
+  };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce || !('IntersectionObserver' in window)){settle();return;}
+
   var animate=function(el){
     var to=+el.dataset.count, div=+(el.dataset.div||1), t0=null, dur=1100;
+    el.textContent = div>1 ? '0.00' : '0';
     var tick=function(t){
-      if(!t0)t0=t;
+      if(t0===null)t0=t;
       var k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3), cur=to*e;
       el.textContent = div>1 ? (cur/div).toFixed(2) : fmt(Math.round(cur));
-      if(k<1)requestAnimationFrame(tick);
+      if(k<1){requestAnimationFrame(tick)}else{el.textContent=finalText(el)}
     };
     requestAnimationFrame(tick);
   };
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var counters=[].slice.call(document.querySelectorAll('[data-count]'));
-  // 숫자는 HTML 에 최종값으로 박혀 있다(JS 가 꺼져 있거나 크롤러·메일 미리보기로 열려도
-  // 「구독자 0명」이 보이면 안 된다). 애니메이션을 실제로 돌릴 때만 0 으로 되돌린다.
-  if(!reduce && ('IntersectionObserver' in window)){
-    counters.forEach(function(el){
-      el.textContent = (+(el.dataset.div||1))>1 ? '0.00' : '0';
-    });
-  }
-  if(reduce || !('IntersectionObserver' in window)){
-    counters.forEach(function(el){
-      var to=+el.dataset.count, div=+(el.dataset.div||1);
-      el.textContent = div>1 ? (to/div).toFixed(2) : fmt(to);
-    });
-    var b=document.getElementById('bars'); if(b)b.classList.add('on');
-    return;
-  }
   var io=new IntersectionObserver(function(es){
     es.forEach(function(e){
       if(!e.isIntersecting)return;
-      if(e.target.id==='bars'){e.target.classList.add('on')}
-      else{animate(e.target)}
       io.unobserve(e.target);
+      if(e.target===bars){e.target.classList.add('on')}else{animate(e.target)}
     });
-  },{threshold:.4});
+  },{threshold:.25, rootMargin:'0px 0px -40px 0px'});
   counters.forEach(function(el){io.observe(el)});
-  var bars=document.getElementById('bars'); if(bars)io.observe(bars);
+  if(bars)io.observe(bars);
+  // 안전장치 — 스크롤이 한 번에 건너뛰어 관찰이 안 걸리는 경우가 있다. 최종값은 무조건 박힌다.
+  setTimeout(settle, 6000);
 })();
 </script>
 </body>
