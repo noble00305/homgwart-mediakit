@@ -165,14 +165,14 @@ footer b{color:var(--dim)}
   <p class="sub">전부 채널 공개 페이지에서 전수 수집한 실측값입니다(2026-10-13 수집, 영상 17편 전수·반올림 아님).</p>
 
   <div class="stats">
-    <div class="stat"><div class="k">구독자</div><div class="v" data-count="2260">0</div><div class="n">명</div></div>
-    <div class="stat"><div class="k">누적 조회</div><div class="v" data-count="131121">0</div><div class="n">회 · 영상 17편 합계</div></div>
-    <div class="stat"><div class="k">공개 영상</div><div class="v" data-count="17">0</div><div class="n">편 (롱폼 15 · 숏폼 2)</div></div>
+    <div class="stat"><div class="k">구독자</div><div class="v" data-count="2260">2,260</div><div class="n">명</div></div>
+    <div class="stat"><div class="k">누적 조회</div><div class="v" data-count="131121">131,121</div><div class="n">회 · 영상 17편 합계</div></div>
+    <div class="stat"><div class="k">공개 영상</div><div class="v" data-count="17">17</div><div class="n">편 (롱폼 15 · 숏폼 2)</div></div>
   </div>
 
   <div class="hero-stat">
     <div class="k">영상당 조회 &divide; 구독자</div>
-    <div class="v"><span data-count="379" data-div="100">0</span>배</div>
+    <div class="v"><span data-count="379" data-div="100">3.79</span>배</div>
     <div class="why">구독자 알림이 아니라 <b>검색</b>으로 보는 채널이라는 뜻입니다.
       그래서 영상이 올라간 날 하루 일하고 끝나지 않고, <b>몇 년 동안 계속 일합니다.</b></div>
     <div class="bench">업계에서 건강하다고 보는 구간은 영상당 조회가 구독자 수의 <b>0.1~0.5배</b>입니다.
@@ -273,7 +273,7 @@ footer b{color:var(--dim)}
     <li>즉 위의 누적 조회 131,121회와 상위 영상들의 조회수는 <b>업로드가 멈춘 상태에서도 계속 쌓인 숫자</b>입니다.
         검색 유입 채널이라 가능했던 일입니다.</li>
     <li><b>2026년 10월, 채널을 다시 가동합니다.</b> 월 2편 발행 기준으로 복귀하며, 첫 편은 현재 제작 중입니다
-        (2026년 기준 웹빌더 비교 — 아임웹·카페24·식스샵·노션/프레이머).</li>
+        (「2026년, 아직도 웹빌더가 필요한가 — AI로 만들기 vs 아임웹·카페24 전격비교」).</li>
     <li>신규 영상의 초기 성과는 아직 측정되지 않았습니다. <b>보장 조회수를 제시하지 않는 이유</b>이고,
         그 부분은 캠페인 조건으로 같이 설계하면 됩니다.</li>
   </ul>
@@ -315,6 +315,13 @@ footer b{color:var(--dim)}
   };
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var counters=[].slice.call(document.querySelectorAll('[data-count]'));
+  // 숫자는 HTML 에 최종값으로 박혀 있다(JS 가 꺼져 있거나 크롤러·메일 미리보기로 열려도
+  // 「구독자 0명」이 보이면 안 된다). 애니메이션을 실제로 돌릴 때만 0 으로 되돌린다.
+  if(!reduce && ('IntersectionObserver' in window)){
+    counters.forEach(function(el){
+      el.textContent = (+(el.dataset.div||1))>1 ? '0.00' : '0';
+    });
+  }
   if(reduce || !('IntersectionObserver' in window)){
     counters.forEach(function(el){
       var to=+el.dataset.count, div=+(el.dataset.div||1);
